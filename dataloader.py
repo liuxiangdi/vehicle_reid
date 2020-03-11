@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 
-class CClDataLoader():
+class AIC20_dataloader_CCL():
     def __init__(self, mode):
         super().__init__()
 
@@ -56,7 +56,7 @@ class CClDataLoader():
 
 
 if __name__ == '__main__':
-    loader = CClDataLoader("train")
+    loader = AIC20_dataloader_CCL("train")
     pos, neg = loader.get_batch()
     print(pos)
 
