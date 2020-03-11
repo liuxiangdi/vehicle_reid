@@ -8,7 +8,7 @@ from dataloader import AIC20_dataloader_CCL
 from losss import ccl_loss
 
 device = torch.device("cuda:1")
-date = time.strftime("%m-%m", time.localtime())
+date = time.strftime("%m-%d", time.localtime())
 model_path = "/home/lxd/checkpoints/" + date
 if not os.path.exists(model_path):
     os.makedirs(model_path)
@@ -24,6 +24,7 @@ class CCL_trainer():
         self.model.to(device)
         
         if data_name == "AIC20":
+            self.loader_train = AIC20_dataloader_CCL("train")
             self.loader_train = AIC20_dataloader_CCL("train")
 
     def train(self):
@@ -50,14 +51,18 @@ class CCL_trainer():
 
             avg_loss += loss.item()
             if index % 2000 == 0 and index != 0:
-                path = os.path.join(model_path, "{}_{}_{}_{}".format(self.model_name, self.data_name, index, avg_loss))
+                path = os.path.join(model_path, "{}_{}_{}_{}.pt".format(self.model_name, self.data_name, index, avg_loss))
                 torch.save(self.model.state_dict(), path)
             if index % 100 == 0 and index != 0:
                 print('batch {}  avgloss {}'.format(index, avg_loss/100))
                 avg_loss = 0
 
-    def val(self):
-        pass
+    def validation(self, model=None):
+        validation_model = model (if model is not None) else self.model
+        
+        # caculate CMC
+        features = []
+
 
 
 if __name__ == "__main__":
