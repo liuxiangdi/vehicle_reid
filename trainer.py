@@ -4,15 +4,17 @@ import torch.nn.functional as F
 from model import Vgg16Net
 from dataloader import CClDataLoader
 
+device = torch.device("cuda:1")
+
 class CCL_trainer():
     def __init__(self):
         super().__init__()
         self.model = Vgg16Net()
+        self.model.to(device)
     
     def ccl_loss(self, pos_features, neg_features, margin=0.5):
         # 计算positive 中心点
         pos_center = pos_features.mean(0)
-        print("pos_center :", pos_center.shape)
         pos_center = torch.div(pos_center, torch.norm(pos_center, 2))
         pos_center = torch.unsqueeze(pos_center, 0)
 
@@ -27,9 +29,6 @@ class CCL_trainer():
             if dis < hard_dis:
                 hard_dis = dis
                 hard_neg = _feature
-    
-        print('dis')
-        print(dis)
         
         total_loss = 0
         for i in range(len(pos_features)):
@@ -40,20 +39,18 @@ class CCL_trainer():
             loss = torch.clamp(loss, min=0)
 
             total_loss += loss
-        print("total loss", loss)
         return loss
     
 
     def train(self):
         loader = CClDataLoader("train")
         
-        optimizer = optim.SGD(self.model.parameters(), lr=0.0001, momentum=0.8)
+        optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.8)
         avg_loss = 0
         for index in range(10000):
-            print(index)
             pos, neg = loader.get_batch()
-            pos = torch.stack(pos)
-            neg = torch.stack(neg)
+            pos = torch.stack(pos).to(device)
+            neg = torch.stack(neg).to(device)
 
             pos_features = self.model(pos)
             neg_features = self.model(neg)

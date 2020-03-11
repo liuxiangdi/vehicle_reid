@@ -13,7 +13,7 @@ class CClDataLoader():
         self.transform = transforms.Compose([transforms.Resize((224, 224)), 
                                             transforms.ToTensor(),
                                             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-        self.root_path = "D:\\Workspace\\assests\\AIC20_ReID"
+        self.root_path = "/home/lxd/datasets/AIC20_ReID"
         if mode == "train":
             self.image_path = os.path.join(self.root_path, "image_train") 
         else:
