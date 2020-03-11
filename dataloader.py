@@ -48,7 +48,7 @@ class CClDataLoader():
             pos_image.append(image)
         
         neg_image = []
-        for path in pos_path:
+        for path in neg_path:
             image = Image.open(path)
             image = self.transform(image)
             neg_image.append(image)
