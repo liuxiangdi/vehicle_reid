@@ -67,21 +67,10 @@ class AIC20_dataloader_CCL():
             self.test_index += 1
             if self.test_index >= len(self.images):
                 print("Images fetch out")
-            
             return images
 
     def get_num(self):
         return len(self.images)
-
-
-class AI20_validation(Dataset):
-    def __init__():
-        self.transform = transforms.Compose([transforms.Resize((224, 224)), 
-                                            transforms.ToTensor(),
-                                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-
-    de
-        
 
 
 if __name__ == '__main__':

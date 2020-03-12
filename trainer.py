@@ -1,6 +1,7 @@
 import torch
 import time
 import os
+import numpy as np
 import torch.optim as optim
 import torch.nn.functional as F
 from model import Vgg16Net
@@ -25,7 +26,7 @@ class CCL_trainer():
         
         if data_name == "AIC20":
             self.loader_train = AIC20_dataloader_CCL("train")
-            self.loader_train = AIC20_dataloader_CCL("train")
+            self.loader_test = AIC20_dataloader_CCL("test")
 
     def train(self):
         lr = 0.001
@@ -58,11 +59,30 @@ class CCL_trainer():
                 avg_loss = 0
 
     def validation(self, model=None):
-        validation_model = model (if model is not None) else self.model
-        
-        # caculate CMC
-        features = []
+        validation_model = model if model is not None else self.model
 
+        # caculate CMC
+        # 提取所有features
+        t = time.time()
+        features = []
+        for batch, inputs in enumerate(self.loader_test):
+            inputs = inputs.to(device)
+            outputs = self.model(inputs).cpu().numpy()
+            for index in range(len(outputs)):
+                feature = outputs[index]
+                feature /= np.linalg.norm(feature, 2)
+                features.append([feature, batch])
+        print("extract feature time  {}".format(time.time() - t))
+
+        # 计算所有features的dis
+        t = time.time()
+        diss = np.ones([len(features), len(features)], dtype=np.float)
+        for i in range(len(features)):
+            for j in range(i+1, features):
+                dis = np.linalg.norm(features[i], features[j])
+                diss[i][j] = dis
+                diss[j][i] = dis
+        print("cal dis time  {}".format(time.time() - t))
 
 
 if __name__ == "__main__":
