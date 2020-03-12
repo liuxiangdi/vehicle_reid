@@ -37,8 +37,8 @@ class CCL_trainer():
                 optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.8)
             
             pos, neg = self.loader_train.get_batch()
-            pos = torch.stack(pos).to(device)
-            neg = torch.stack(neg).to(device)
+            pos = pos.to(device)
+            neg = neg.to(device)
 
             pos_features = self.model(pos)
             neg_features = self.model(neg)
@@ -69,12 +69,10 @@ class CCL_trainer():
         for car_id in range(loader_test.get_num()):
             #if car_id % 50 == 0 and car_id != 0:
             #    break
-            inputs = loader_test.get_batch()
-            inputs = torch.stack(inputs).to(device)
+            inputs = loader_test.get_batch().to(device)
             outputs = validation_model(inputs).cpu().detach().numpy()
             for index in range(len(outputs)):
                 feature = outputs[index]
-                feature /= np.linalg.norm(feature, 2)
                 features.append([feature, car_id])
         print("extract feature time  {}".format(time.time() - t))
 
@@ -112,14 +110,12 @@ class CCL_trainer():
         print(ans)
 
 if __name__ == "__main__":
-    trainer = CCL_trainer(model_name = "Vgg16", data_name = "AIC20")
-    trainer.train()
+    #trainer = CCL_trainer(model_name = "Vgg16", data_name = "AIC20")
+    #trainer.train()
    
-    """
     model = Vgg16Net()
     model.to(device)
     model.eval()
-    model.load_state_dict(torch.load("/home/lxd/checkpoints/03-12/Vgg16_AIC20_2000.pt"))
+    model.load_state_dict(torch.load("/home/lxd/checkpoints/03-12/Vgg16_AIC20_18000_1.pt"))
     trainer = CCL_trainer(model_name = "Vgg16", data_name = "AIC20")
     trainer.validation(model)
-    """

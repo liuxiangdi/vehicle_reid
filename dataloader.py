@@ -41,11 +41,6 @@ class AIC20_dataloader_CCL():
     def get_batch(self, batch_size=4):
         if self.mode == "train":
             indexs_num = len(self.images)
-            """
-            pos_index, neg_idx = random.sample(range(indexs_num), 2)
-            pos_path = random.sample(self.images[pos_index], batch_size)
-            neg_path = random.sample(self.images[neg_idx], batch_size)
-            """
             indexs = random.sample(range(indexs_num), batch_size + 1)
             pos_index = indexs[0]
             pos_path = random.sample(self.images[pos_index], batch_size)
@@ -58,12 +53,14 @@ class AIC20_dataloader_CCL():
                 image = Image.open(path)
                 image = self.transform(image)
                 pos_image.append(image)
+            pos_image = torch.stack(pos_image)
             
             neg_image = []
             for path in neg_path:
                 image = Image.open(path)
                 image = self.transform(image)
                 neg_image.append(image)
+            neg_image = torch.stack(neg_image)
             return pos_image, neg_image
 
         
@@ -75,6 +72,7 @@ class AIC20_dataloader_CCL():
                 image = Image.open(path)
                 image = self.transform(image)
                 images.append(image)
+            images = torch.stack(images)
             self.test_index += 1
             if self.test_index >= len(self.images):
                 print("Images fetch out")
