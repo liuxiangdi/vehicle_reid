@@ -41,9 +41,17 @@ class AIC20_dataloader_CCL():
     def get_batch(self, batch_size=4):
         if self.mode == "train":
             indexs_num = len(self.images)
+            """
             pos_index, neg_idx = random.sample(range(indexs_num), 2)
             pos_path = random.sample(self.images[pos_index], batch_size)
             neg_path = random.sample(self.images[neg_idx], batch_size)
+            """
+            indexs = random.sample(range(indexs_num), batch_size + 1)
+            pos_index = indexs[0]
+            pos_path = random.sample(self.images[pos_index], batch_size)
+            neg_path = []
+            for i in range(1, batch_size+1):
+                neg_path.append(random.choice(self.images[indexs[i]]))
 
             pos_image = []
             for path in pos_path:
@@ -57,9 +65,12 @@ class AIC20_dataloader_CCL():
                 image = self.transform(image)
                 neg_image.append(image)
             return pos_image, neg_image
+
+        
         elif self.mode == "test":
-            images_path = self.images[self.test_index]
+            images_path = self.images[self.test_index][:2]
             images = []
+            
             for path in images_path:
                 image = Image.open(path)
                 image = self.transform(image)

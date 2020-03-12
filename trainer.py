@@ -26,7 +26,6 @@ class CCL_trainer():
         
         if data_name == "AIC20":
             self.loader_train = AIC20_dataloader_CCL("train")
-            self.loader_test = AIC20_dataloader_CCL("test")
 
     def train(self):
         lr = 0.001
@@ -52,39 +51,75 @@ class CCL_trainer():
 
             avg_loss += loss.item()
             if index % 2000 == 0 and index != 0:
-                path = os.path.join(model_path, "{}_{}_{}_{}.pt".format(self.model_name, self.data_name, index, avg_loss))
+                path = os.path.join(model_path, "{}_{}_{}.pt".format(self.model_name, self.data_name, index))
                 torch.save(self.model.state_dict(), path)
             if index % 100 == 0 and index != 0:
                 print('batch {}  avgloss {}'.format(index, avg_loss/100))
                 avg_loss = 0
 
     def validation(self, model=None):
+        # 对于每个ID车辆只取三张图
+        print("--------- validation ACI20 Vgg16_2000 -----------")
+        loader_test = AIC20_dataloader_CCL("test")
         validation_model = model if model is not None else self.model
-
         # caculate CMC
         # 提取所有features
         t = time.time()
         features = []
-        for batch, inputs in enumerate(self.loader_test):
-            inputs = inputs.to(device)
-            outputs = self.model(inputs).cpu().numpy()
+        for car_id in range(loader_test.get_num()):
+            #if car_id % 50 == 0 and car_id != 0:
+            #    break
+            inputs = loader_test.get_batch()
+            inputs = torch.stack(inputs).to(device)
+            outputs = validation_model(inputs).cpu().detach().numpy()
             for index in range(len(outputs)):
                 feature = outputs[index]
                 feature /= np.linalg.norm(feature, 2)
-                features.append([feature, batch])
+                features.append([feature, car_id])
         print("extract feature time  {}".format(time.time() - t))
 
         # 计算所有features的dis
         t = time.time()
-        diss = np.ones([len(features), len(features)], dtype=np.float)
+        diss = np.full([len(features), len(features)], float("Inf"), dtype=np.float)
         for i in range(len(features)):
-            for j in range(i+1, features):
-                dis = np.linalg.norm(features[i], features[j])
+            if i % 100 == 0:
+                print("cal_dis {} / {}".format(i, len(features)))
+            for j in range(i+1, len(features)):
+                dis = float(np.linalg.norm(features[i][0]-features[j][0], 2))
                 diss[i][j] = dis
                 diss[j][i] = dis
         print("cal dis time  {}".format(time.time() - t))
-
+        
+        t = time.time()
+        cms_lis = []
+        for index, dis in enumerate(diss):
+            anchor_ID = features[index][1]
+            dis = [[j, i] for i,j in enumerate(list(dis))]
+            dis.sort()
+            #if index % 100 == 0:
+            #    print("{} / {}".format(index, len(features)))
+            for ranki in range(10):
+                match_ID = features[dis[ranki][1]][1]
+                if match_ID == anchor_ID:
+                    cms_lis.append(ranki)
+                    break
+        print("cms_lis time {}".format(time.time() - t))
+        ans = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for i in cms_lis:
+            ans[i] += 1/len(features)
+        for i in range(9):
+            ans[i+1] += ans[i]
+        print(ans)
 
 if __name__ == "__main__":
     trainer = CCL_trainer(model_name = "Vgg16", data_name = "AIC20")
     trainer.train()
+   
+    """
+    model = Vgg16Net()
+    model.to(device)
+    model.eval()
+    model.load_state_dict(torch.load("/home/lxd/checkpoints/03-12/Vgg16_AIC20_2000.pt"))
+    trainer = CCL_trainer(model_name = "Vgg16", data_name = "AIC20")
+    trainer.validation(model)
+    """

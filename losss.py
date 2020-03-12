@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def ccl_loss(pos_features, neg_features, margin=0.5):
+def ccl_loss(pos_features, neg_features, margin=1.0):
     # 计算positive 中心点
     pos_center = pos_features.mean(0)
     pos_center = torch.div(pos_center, torch.norm(pos_center, 2))
