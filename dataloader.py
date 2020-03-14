@@ -6,87 +6,45 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
+train_transform = transforms.Compose([transforms.Resize((224, 224)), 
+                                    transforms.ToTensor(),
+                                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-class AIC20_dataloader_CCL():
-    def __init__(self, mode):
+class VeRi_dataloader_triplet():
+    # train set 769 cars
+    def __init__(self):
         super().__init__()
-        self.mode = mode
-        self.transform = transforms.Compose([transforms.Resize((224, 224)), 
-                                            transforms.ToTensor(),
-                                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-        self.root_path = "/home/lxd/datasets/AIC20_ReID"
-        if mode == "train":
-            self.image_path = os.path.join(self.root_path, "image_train") 
-        else:
-            self.image_path = os.path.join(self.root_path, "image_test") 
-        self.images = self.select_images(mode)    
-        # 测试时保证数据取出
-        self.test_index = 0
+        self.root_path = "D:\\BaiduNetdiskDownload\\VeRi\\image_train"
+        images = [[int(i[:4]), os.path.join(self.root_path, i)] 
+                   for i in os.listdir(self.root_path) if 'jpg' in i]
+        images.sort()
+        cars_id = []
+        for index, image in images:
+            if index > len(cars_id):
+                cars_id.append([])
+            cars_id[-1].append(image)
+        cars_id = [i for i in cars_id if len(cars_id) >= 4]
+        self.cars_id = cars_id
+        self.id_num = len(self.cars_id)
 
-    def select_images(self, mode):
-        fil = None
-        if mode == "train":
-            fil = os.path.join(self.root_path, "train_track.txt")
-        elif mode == "test":
-            fil = os.path.join(self.root_path, "test_track.txt")
-        images = []
-        with open(fil, 'r') as f:
-            for line in f.readlines():
-                _temp = line.strip().replace('\n', '').split(' ')
-                _temp = [os.path.join(self.image_path, i) for i in _temp]
-                if len(_temp) > 5 or mode == "test":
-                    images.append(_temp)
-        return images
-
-    def get_batch(self, batch_size=4):
-        if self.mode == "train":
-            indexs_num = len(self.images)
-            indexs = random.sample(range(indexs_num), batch_size + 1)
-            pos_index = indexs[0]
-            pos_path = random.sample(self.images[pos_index], batch_size)
-            neg_path = []
-            for i in range(1, batch_size+1):
-                neg_path.append(random.choice(self.images[indexs[i]]))
-
-            pos_image = []
-            for path in pos_path:
-                image = Image.open(path)
-                image = self.transform(image)
-                pos_image.append(image)
-            pos_image = torch.stack(pos_image)
-            
-            neg_image = []
-            for path in neg_path:
-                image = Image.open(path)
-                image = self.transform(image)
-                neg_image.append(image)
-            neg_image = torch.stack(neg_image)
-            return pos_image, neg_image
-
+    def get_triplet_batch(self, batch_size=4):
+        ids = random.sample(range(self.id_num), batch_size+1)
+        pos_id, neg_ids = ids[0], ids[1:]
+        anchor_images, pos_images, neg_images = [], [], []
+        for i in range(batch_size):
+            anchor_path, pos_path = random.sample(self.cars_id[pos_id], 2)
+            neg_path = random.choice(self.cars_id[neg_ids[i]])
+            anchor_images.append(train_transform(Image.open(anchor_path)))
+            pos_images.append(train_transform(Image.open(pos_path)))
+            neg_images.append(train_transform(Image.open(neg_path)))
         
-        elif self.mode == "test":
-            images_path = self.images[self.test_index][:2]
-            images = []
-            
-            for path in images_path:
-                image = Image.open(path)
-                image = self.transform(image)
-                images.append(image)
-            images = torch.stack(images)
-            self.test_index += 1
-            if self.test_index >= len(self.images):
-                print("Images fetch out")
-            return images
-
-    def get_num(self):
-        return len(self.images)
-
+        anchor_inputs = torch.stack(anchor_images)
+        pos_inputs = torch.stack(pos_images)
+        neg_inputs = torch.stack(neg_images)
+        return anchor_inputs, pos_inputs, neg_inputs
+        
 
 if __name__ == '__main__':
-    loader = AIC20_dataloader_CCL("test")
-    for i in range(loader.get_num()):
-        images = loader.get_batch()
-        print(i)
-    print("done")
-
-
+    dataloader = VeRi_dataloader_triplet()
+    anchor, pos, neg = dataloader.get_triplet_batch()
+    
