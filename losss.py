@@ -67,7 +67,7 @@ class BatchHardTripletLoss(nn.Module):
     """
 
     def __init__(self, margin=0.5):
-        super(TripletLoss, self).__init__()
+        super(BatchHardTripletLoss, self).__init__()
         self.margin = margin
         self.ranking_loss = nn.MarginRankingLoss(margin=margin)
 

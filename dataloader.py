@@ -10,7 +10,7 @@ train_transform = transforms.Compose([transforms.Resize((224, 224)),
                                     transforms.ToTensor(),
                                     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-class VeRi_dataloader_triplet():
+class VeRi_dataloader():
     # train set 769 cars
     def __init__(self):
         super().__init__()
@@ -41,8 +41,20 @@ class VeRi_dataloader_triplet():
         anchor_inputs = torch.stack(anchor_images)
         pos_inputs = torch.stack(pos_images)
         neg_inputs = torch.stack(neg_images)
+    
         return anchor_inputs, pos_inputs, neg_inputs
-        
+
+    def get_batch_hard_triplets(self, class_num=4, batch_size = 4):
+        ids = random.sample(range(self.id_num), class_num)
+        images = []
+        for _id in ids:
+            image_list = self.cars_id[_id]
+            image_list = random.sample(image_list, batch_size)
+            for image_path in image_list:
+                images.append(train_transform(Image.open(image_path)))
+        images = torch.stack(images)
+        return images
+
 
 class PersonDataloader():
     def __init__(self, mode):
