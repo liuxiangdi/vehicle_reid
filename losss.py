@@ -79,7 +79,6 @@ class BatchHardTripletLoss(nn.Module):
         """
         # image num 为5
         n = inputs.size(0)
-        print(n)
 
         # Compute pairwise distance, replace by the official when merged
         dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)

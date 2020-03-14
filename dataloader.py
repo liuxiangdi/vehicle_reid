@@ -14,7 +14,8 @@ class VeRi_dataloader():
     # train set 769 cars
     def __init__(self):
         super().__init__()
-        self.root_path = "D:\\BaiduNetdiskDownload\\VeRi\\image_train"
+        #self.root_path = "D:\\BaiduNetdiskDownload\\VeRi\\image_train"
+        self.root_path = "/home/lxd/datasets/VeRi/image_train"
         images = [[int(i[:4]), os.path.join(self.root_path, i)] 
                    for i in os.listdir(self.root_path) if 'jpg' in i]
         images.sort()
@@ -23,9 +24,10 @@ class VeRi_dataloader():
             if index > len(cars_id):
                 cars_id.append([])
             cars_id[-1].append(image)
-        cars_id = [i for i in cars_id if len(cars_id) >= 4]
+        cars_id = [i for i in cars_id if len(i) >= 4]
         self.cars_id = cars_id
         self.id_num = len(self.cars_id)
+        print("------------ VeRI Train Dataset : {} class -------------".format(self.id_num))
 
     def get_triplet_batch(self, batch_size=4):
         ids = random.sample(range(self.id_num), batch_size+1)
@@ -47,13 +49,16 @@ class VeRi_dataloader():
     def get_batch_hard_triplets(self, class_num=4, batch_size = 4):
         ids = random.sample(range(self.id_num), class_num)
         images = []
+        targets = []
         for _id in ids:
             image_list = self.cars_id[_id]
             image_list = random.sample(image_list, batch_size)
             for image_path in image_list:
                 images.append(train_transform(Image.open(image_path)))
+                targets.append(_id)
         images = torch.stack(images)
-        return images
+        targets = torch.tensor(targets, dtype = torch.int64)
+        return images, targets
 
 
 class PersonDataloader():
@@ -173,6 +178,7 @@ class PersonDataloader():
         return 379
 
 if __name__ == '__main__':
-    dataloader = VeRi_dataloader_triplet()
+    dataloader = VeRi_dataloader()
     anchor, pos, neg = dataloader.get_triplet_batch()
+    images = dataloader.get_batch_hard_triplets()
     
