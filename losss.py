@@ -1,9 +1,25 @@
 import torch
 import torch.nn.functional as F
 
+#def triplet_loss(anchor, positive, negtive, margin=1.0):
+    
+
 
 def ccl_loss(pos_features, neg_features, margin=1.0):
+    
     # 计算positive 中心点
+    """
+    pos_center = None
+    for i in range(len(pos_features)):
+        _feature = neg_features[i]
+        _feature = torch.div(_feature, torch.norm(_feature, 2))
+        if i == 0:
+            pos_center = _feature
+            continue
+        pos_center += _feature
+    pos_center = torch.div(pos_center, torch.norm(pos_center, 2))
+    pos_center = torch.unsqueeze(pos_center, 0)
+    """
     pos_center = pos_features.mean(0)
     pos_center = torch.div(pos_center, torch.norm(pos_center, 2))
     pos_center = torch.unsqueeze(pos_center, 0)
