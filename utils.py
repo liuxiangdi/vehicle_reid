@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 def pdist(vectors):
@@ -10,15 +11,16 @@ def validation(features, labels):
     """
     features [num x 128, num x 128..]
     """
-    features = np.asarray([i.cpu().numpy for i in features])
     dis = pdist(features)
+    print(dis)
 
     cmc = []
     for i in range(len(dis)):
         anchor_label = labels[i]
+        dis[i][i] = float("inf")
         for rank in range(10):
             _index = np.argmin(dis[i])
-            _label = labels(_index)
+            _label = labels[_index]
             if anchor_label == _label:
                 cmc.append(rank)
                 break
@@ -26,9 +28,12 @@ def validation(features, labels):
     rank10 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for i in cmc:
         rank10[i] += 1/len(features)
+
+    for i in range(9):
+        rank10[i+1] += rank10[i]
     print("CMC {}".format(rank10))
 
-a = np.asarray([1,2,3,4])
-b = [a,a,a,a]
-c = np.concatenate(a)
-print(c)
+if __name__ == "__main__":
+    test = torch.tensor(np.random.rand(10, 128))
+    labels = [1,1,2,2,3,3,4,5,4,5]
+    validation(test, labels)

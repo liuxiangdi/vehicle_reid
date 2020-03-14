@@ -60,6 +60,20 @@ class VeRi_dataloader():
         targets = torch.tensor(targets, dtype = torch.int64)
         return images, targets
 
+    def get_test_batch(self, car_id):
+        image_list = self.cars_id[car_id][:2]
+        images = []
+        targets = []
+        for image_path in image_list:
+            images.append(train_transform(Image.open(image_path)))
+            targets.append(car_id)
+        images = torch.stack(images)
+        return images, targets
+
+    def get_test_ids(self):
+        return range(200)
+
+        
 
 class PersonDataloader():
     def __init__(self, mode):
