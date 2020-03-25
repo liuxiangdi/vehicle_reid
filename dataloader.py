@@ -15,7 +15,8 @@ class VeRi_dataloader():
     def __init__(self):
         super().__init__()
         #self.root_path = "D:\\BaiduNetdiskDownload\\VeRi\\image_train"
-        self.root_path = "/home/lxd/datasets/VeRi/image_train"
+        #self.root_path = "/home/lxd/datasets/VeRi/image_train"
+        self.root_path = "/home/lxd/datasets/gt_bbox"
         images = [[int(i[:4]), os.path.join(self.root_path, i)] 
                    for i in os.listdir(self.root_path) if 'jpg' in i]
         images.sort()
@@ -61,7 +62,7 @@ class VeRi_dataloader():
         return images, targets
 
     def get_test_batch(self, car_id):
-        image_list = self.cars_id[car_id][:2]
+        image_list = self.cars_id[car_id][:4]
         images = []
         targets = []
         for image_path in image_list:
@@ -71,7 +72,7 @@ class VeRi_dataloader():
         return images, targets
 
     def get_test_ids(self):
-        return range(200)
+        return range(300)
 
         
 

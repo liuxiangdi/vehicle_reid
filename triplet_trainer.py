@@ -12,9 +12,7 @@ from losss import BatchHardTripletLoss
 
 ################## config ################
 device = torch.device("cuda:1")
-#date = time.strftime("%m-%d", time.localtime())
-date = "03-14"
-
+date = time.strftime("%m-%d", time.localtime())
 model_path = "/home/lxd/checkpoints/" + date
 
 model_name = sys.argv[1]
@@ -38,8 +36,8 @@ model.to(device)
 mode = sys.argv[2]
 batch = sys.argv[3]
 if mode == "test":
-    model.eval()
-    model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_BH_VeRI_{}.pt".format(date, model_name, batch)))
+    #model.eval()
+    model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_Triplet_VeRI_{}.pt".format(date, model_name, batch)))
     print("model load {}".format(model_name))
 
 dataloader = VeRi_dataloader()
@@ -51,9 +49,8 @@ dataloader = VeRi_dataloader()
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 
-def trainer_BHTriplet(model, epoch=20000):
+def trainer_Triplet(model, epoch=20000):
     lr = 0.0002
-    #optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.8)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     avg_loss = 0
     criterion = BatchHardTripletLoss()
@@ -62,13 +59,17 @@ def trainer_BHTriplet(model, epoch=20000):
             lr /= 10
             optimizer = optim.Adam(model.parameters(), lr=lr)
 
-        batch_inputs, targets = dataloader.get_batch_hard_triplets()
-        batch_inputs = batch_inputs.to(device)      
-        targets = targets.to(device)
+        anchor, pos, neg = dataloader.get_triplet_batch()
+        anchor = anchor.to(device)      
+        pos = pos.to(device)
+        neg = neg.to(device)
 
-        embedding = model(batch_inputs)
+        anchor_features = model(anchor)
+        pos_features = model(pos)
+        neg_features = model(neg)
         
-        loss = criterion(embedding, targets)
+        #loss = criterion(embedding, targets)
+        loss = F.triplet_margin_loss(anchor_features, pos_features, neg_features)
         
         optimizer.zero_grad()
         loss.backward()

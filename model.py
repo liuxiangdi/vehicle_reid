@@ -17,17 +17,15 @@ class ResNet50(nn.Module):
             resnet.layer4
         )
         self.avgpool = resnet.avgpool
-        self.fc1 = nn.Linear(in_features = 2048, out_features = 512, bias = True)
-        self.fc2 = nn.Linear(in_features = 512, out_features = 128, bias = True)
+        self.fc1 = nn.Linear(in_features = 2048, out_features = 128, bias = True)
+        #self.fc2 = nn.Linear(in_features = 512, out_features = 128, bias = True)
     
     def forward(self, x):
         x = self.feature_map(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
-        x = nn.functional.relu(x)
-        x = self.fc2(x)
-        output = torch.div(output, output.pow(2).sum(1, keepdim=True).sqrt())
+        x = torch.div(x, x.pow(2).sum(1, keepdim=True).sqrt())
         
         return x
 
@@ -70,17 +68,17 @@ class MobileNet(nn.Module):
         mobileNet = models.mobilenet_v2(pretrained=True)
         feature_map = mobileNet.features
         embedding = mobileNet.classifier
-        embedding[1] = nn.Linear(in_features=1280, out_features=512, bias=True)
+        embedding[1] = nn.Linear(in_features=1280, out_features=128, bias=True)
         self.feature_map = feature_map
         self.embedding = embedding
-        self.fc = nn.Linear(in_features=512, out_features=128, bias=True)
+        #self.fc = nn.Linear(in_features=512, out_features=128, bias=True)
     
     def forward(self, x):
         x = self.feature_map(x)
         x = x.mean([2, 3])
         x = self.embedding(x)
-        x = nn.functional.relu(x)
-        x = self.fc(x)
+        #x = nn.functional.relu(x)
+        #x = self.fc(x)
         x = torch.div(x, x.pow(2).sum(1, keepdim=True).sqrt())
         
         return x

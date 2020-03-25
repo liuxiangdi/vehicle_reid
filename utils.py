@@ -11,25 +11,30 @@ def validation(features, labels):
     features [num x 128]
     """
     diss = np.full([len(features), len(features)], float("Inf"), dtype=np.float)
+    #diss = np.full([len(features), len(features)], float(0), dtype=np.float)
     for i in range(len(features)):
-        if i % 100 == 0:
+        if i % 50 == 0:
             print("cal_dis {} / {}".format(i, len(features)))
         for j in range(i+1, len(features)):
-            dis = float(np.linalg.norm(features[i][0]-features[j][0], 2))
+            dis = float(np.linalg.norm(features[i] - features[j], 2))
             diss[i][j] = dis
             diss[j][i] = dis
     
+    print(diss[0])
     cmc = []
     for i in range(len(diss)):
         anchor_label = labels[i]
         diss[i][i] = float("inf")
+        #diss[i][i] = float(0)
         for rank in range(10):
-            _index = np.argmin(dis[i])
+            _index = np.argmin(diss[i])
+            #_index = np.argmax(diss[i])
             _label = labels[_index]
             if anchor_label == _label:
                 cmc.append(rank)
                 break
             diss[i][_index] = float("inf")
+            #diss[i][_index] = float(0)
     rank10 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for i in cmc:
         rank10[i] += 1/len(features)
