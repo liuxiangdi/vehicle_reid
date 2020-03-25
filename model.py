@@ -17,8 +17,8 @@ class ResNet50(nn.Module):
             resnet.layer4
         )
         self.avgpool = resnet.avgpool
-        self.fc1 = nn.Linear(in_features = 2048, out_features = 128, bias = True)
-        #self.fc2 = nn.Linear(in_features = 512, out_features = 128, bias = True)
+        self.fc1 = nn.Linear(in_features = 2048, out_features = 32, bias = True)
+        #self.fc2 = nn.Linear(in_features = 512, out_features = 64, bias = True)
     
     def forward(self, x):
         x = self.feature_map(x)
@@ -45,8 +45,8 @@ class ResNet34(nn.Module):
             resnet.layer4
         )
         self.avgpool = resnet.avgpool
-        self.fc1 = nn.Linear(in_features = 512, out_features = 256, bias = True)
-        self.fc2 = nn.Linear(in_features = 256, out_features = 128, bias = True)
+        self.fc1 = nn.Linear(in_features = 512, out_features = 128, bias = True)
+        self.fc2 = nn.Linear(in_features = 128, out_features = 32, bias = True)
     
     def forward(self, x):
         x = self.feature_map(x)
@@ -56,10 +56,7 @@ class ResNet34(nn.Module):
         x = nn.functional.relu(x)
         x = self.fc2(x)
         x = torch.div(x, x.pow(2).sum(1, keepdim=True).sqrt())
-        
         return x
-
-
 
 
 class MobileNet(nn.Module):
@@ -68,7 +65,7 @@ class MobileNet(nn.Module):
         mobileNet = models.mobilenet_v2(pretrained=True)
         feature_map = mobileNet.features
         embedding = mobileNet.classifier
-        embedding[1] = nn.Linear(in_features=1280, out_features=128, bias=True)
+        embedding[1] = nn.Linear(in_features=1280, out_features=32, bias=True)
         self.feature_map = feature_map
         self.embedding = embedding
         #self.fc = nn.Linear(in_features=512, out_features=128, bias=True)
@@ -84,13 +81,12 @@ class MobileNet(nn.Module):
         return x
  
 
-
 class Vgg16Net(nn.Module):
     def __init__(self):
         super(Vgg16Net, self).__init__()
         self.CNN = models.vgg16(pretrained=True).features
         self.FC1 = nn.Linear(7*7*512, 2048)
-        self.FC2 = nn.Linear(2048, 128)
+        self.FC2 = nn.Linear(2048, 32)
     
     def forward(self, x):
         output = self.CNN(x)
@@ -108,7 +104,7 @@ class Vgg11Net(nn.Module):
         super(Vgg11Net, self).__init__()
         self.CNN = models.vgg11(pretrained=True).features
         self.FC1 = nn.Linear(7*7*512, 2048)
-        self.FC2 = nn.Linear(2048, 128)
+        self.FC2 = nn.Linear(2048, 32)
     
     def forward(self, x):
         output = self.CNN(x)

@@ -46,13 +46,10 @@ def ccl_loss(pos_features, neg_features, margin=1.0):
         total_loss += loss
     return total_loss
 
-
 def pdist(vectors):
     distance_matrix = -2 * vectors.mm(torch.t(vectors)) + vectors.pow(2).sum(dim=1).view(1, -1) + vectors.pow(2).sum(
         dim=1).view(-1, 1)
     return distance_matrix
-
-
 
 class BatchHardTripletLoss(nn.Module):
     """Triplet loss with hard positive/negative mining.
