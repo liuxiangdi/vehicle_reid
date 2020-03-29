@@ -34,8 +34,8 @@ model.to(device)
 mode = sys.argv[2]
 batch = sys.argv[3]
 if mode == "test":
-    #model.eval()
-    model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_Contrastive_VeRI_{}.pt".format(date, model_name, batch)))
+    model.eval()
+    #model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_Contrastive_VeRI_{}.pt".format(date, model_name, batch)))
     print("model load {}".format(model_name))
 
 dataloader = VeRi_dataloader()
@@ -65,7 +65,7 @@ def trainer_Contrastive(model, epoch=50000):
         simense_features = model(simense)
         
         #loss = criterion(embedding, targets)
-        loss = (anchor_features, simense_features, flags)
+        loss = contrastive_loss(anchor_features, simense_features, flags)
         
         optimizer.zero_grad()
         loss.backward()
@@ -73,7 +73,7 @@ def trainer_Contrastive(model, epoch=50000):
 
         avg_loss += loss.item()
         if index % 2000 == 0 and index != 0:
-            path = os.path.join(model_path, "{}_BH_VeRI_{}.pt".format(model_name, index))
+            path = os.path.join(model_path, "{}_Contrastive_VeRI_{}.pt".format(model_name, index))
             torch.save(model.state_dict(), path)
         if index % 50 == 0 and index != 0:
             print('batch {}  avgloss {}'.format(index, avg_loss/50))

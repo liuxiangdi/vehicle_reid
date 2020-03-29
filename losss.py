@@ -108,7 +108,14 @@ class BatchHardTripletLoss(nn.Module):
 def contrastive_loss(anchor_features, simense_features, flags):
     total_loss = 0
     for i in range(4):
-        dis = F.pairwise_distance(anchor_features[i], simense_features[i], p=2)
+        _feature1 = anchor_features[i]
+        _feature1 = torch.div(_feature1, torch.norm(_feature1, 2))
+        _feature1 = torch.unsqueeze(_feature1, 0)
+        
+        _feature2 = simense_features[i]
+        _feature2 = torch.div(_feature2, torch.norm(_feature1, 2))
+        _feature2 = torch.unsqueeze(_feature2, 0)
+        dis = F.pairwise_distance(_feature1, _feature2, p=2)
         if flags[i] == 1:
             total_loss += dis
         else:

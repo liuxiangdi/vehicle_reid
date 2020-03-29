@@ -39,7 +39,7 @@ mode = sys.argv[2]
 batch = sys.argv[3]
 if mode == "test":
     model.eval()
-    model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_BH_VeRI_{}.pt".format(date, model_name, batch)))
+    model.load_state_dict(torch.load("/home/lxd/checkpoints/{}/{}_Contrastive_VeRI_{}.pt".format(date, model_name, batch)))
     print("model load {}".format(model_name))
 
 dataloader = VeRi_dataloader()

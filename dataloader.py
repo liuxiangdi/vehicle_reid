@@ -82,27 +82,27 @@ class VeRi_dataloader():
         for i in range(batch_size):
             # same id
             flag = 1
-            anchor_id, simense_id = None
-            if random.randint() > 0.5:
-                anchor_id = random.sample(self.id_num, 1)
+            anchor_id, simense_id = None, None
+            if random.random() > 0.5:
+                anchor_id = random.choice(range(self.id_num))
                 simense_id = anchor_id
                 flag = 1
             else:
-                anchor_id, simense_id = random.sample(self.id_num, 2)
+                anchor_id, simense_id = random.sample(range(self.id_num), 2)
                 flag = 0
             flags.append(flag)            
             anchor_lis = self.cars_id[anchor_id]
             simense_lis = self.cars_id[simense_id]
-            anchor = train_transform(Image.open(random.sample(anchor_lis)))
-            simense = train_transform(Image.open(random.sample(simense_lis)))
+            anchor = train_transform(Image.open(random.choice(anchor_lis)))
+            simense = train_transform(Image.open(random.choice(simense_lis)))
 
-            anchor.append(anchors)
+            anchors.append(anchor)
             simenses.append(simense)
 
         anchors = torch.stack(anchors)
         simenses = torch.stack(simenses)
 
-        return anchor, simenses, flags
+        return anchors, simenses, flags
 
 
     def get_test_ids(self):
@@ -168,21 +168,10 @@ if __name__ == '__main__':
     anchor, pos, neg = dataloader.get_triplet_batch()
     images = dataloader.get_batch_hard_triplets()
     """
-    dataloader = VeRI_validation_dataloader()
-    end_flag = False
+    dataloader = VeRi_dataloader()
     num = 0
     while True:
-        end_flag, images, car_infos = dataloader.get_query_batch()
-        if end_flag:
+        anchor, simense, flags = dataloader.get_contrastive_batch()
+        num += 1
+        if num == 100:
             break
-        num += len(images)
-    print("query_images {}".format(num))
-    end_flag = False
-    num = 0
-    while True:
-        end_flag, images, car_infos = dataloader.get_test_batch()
-        if end_flag:
-            break
-        num += len(images)
-    print("test_images {}".format(num))
-

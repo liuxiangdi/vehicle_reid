@@ -7,6 +7,7 @@ def pdist(vectors):
         dim=1).view(-1, 1)
     return distance_matrix
 
+
 def validation(features, labels):
     """
     features [num x 128]
@@ -53,6 +54,39 @@ def cal_dis(anchor, features):
     dis = np.linalg.norm(anchor - features, 2, axis=1)
     return dis
 
+def car_xml():
+    train_path = "/home/lxd/datasets/VeRi/train_label.xml"
+    train_infos = []
+    with open(train_path, 'r') as f:
+        for line in f.readlines():
+            if "Item " in line:
+                _info = line.split("\"")
+                image_name = _info[1]
+                vehicleID = _info[3]
+                cameraID = _info[5]
+                colorID = _info[7]
+                typeID = _info[9]
+                train_infos.append([image_name, vehicleID, cameraID, colorID, typeID])
+    print(train_infos[0])
+    print(train_infos[-1])
+    
+    test_path = "/home/lxd/datasets/VeRi/test_label.xml"
+    test_infos = []
+    with open(test_path, 'r') as f:
+        for line in f.readlines():
+            if "Item " in line:
+                _info = line.split("\"")
+                image_name = _info[1]
+                vehicleID = _info[3]
+                cameraID = _info[5]
+                colorID = _info[7]
+                typeID = _info[9]
+                test_infos.append([image_name, vehicleID, cameraID, colorID, typeID])
+    print(test_infos[0])
+    print(test_infos[-1])
+
+
+
 
 if __name__ == "__main__":
     """
@@ -60,9 +94,13 @@ if __name__ == "__main__":
     labels = [1,1,2,2,3,3,4,5,4,5]
     validation(test, labels)
     """
+
+    """
     t = time.time()
     for i in range(10):
         a = np.random.rand(10000, 32)
         b = np.random.rand(32)
         ans = cal_dis(a, b)
     print((time.time() - t)/10)
+    """
+    car_xml()
