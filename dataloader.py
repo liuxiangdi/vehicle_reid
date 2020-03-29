@@ -74,6 +74,36 @@ class VeRi_dataloader():
             targets.append(car_id)
         images = torch.stack(images)
         return images, targets
+    
+    def get_contrastive_batch(self, batch_size = 4):
+        anchors = []
+        simenses = []
+        flags = []
+        for i in range(batch_size):
+            # same id
+            flag = 1
+            anchor_id, simense_id = None
+            if random.randint() > 0.5:
+                anchor_id = random.sample(self.id_num, 1)
+                simense_id = anchor_id
+                flag = 1
+            else:
+                anchor_id, simense_id = random.sample(self.id_num, 2)
+                flag = 0
+            flags.append(flag)            
+            anchor_lis = self.cars_id[anchor_id]
+            simense_lis = self.cars_id[simense_id]
+            anchor = train_transform(Image.open(random.sample(anchor_lis)))
+            simense = train_transform(Image.open(random.sample(simense_lis)))
+
+            anchor.append(anchors)
+            simenses.append(simense)
+
+        anchors = torch.stack(anchors)
+        simenses = torch.stack(simenses)
+
+        return anchor, simenses, flags
+
 
     def get_test_ids(self):
         return range(300)

@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from itertools import combinations
 
 def ccl_loss(pos_features, neg_features, margin=1.0):
-    
     # 计算positive 中心点
     """
     pos_center = None
@@ -105,6 +104,17 @@ class BatchHardTripletLoss(nn.Module):
         # Compute ranking hinge loss
         y = torch.ones_like(dist_an)
         return self.ranking_loss(dist_an, dist_ap, y)
+
+def contrastive_loss(anchor_features, simense_features, flags):
+    total_loss = 0
+    for i in range(4):
+        dis = F.pairwise_distance(anchor_features[i], simense_features[i], p=2)
+        if flags[i] == 1:
+            total_loss += dis
+        else:
+            total_loss += torch.clamp(1.5 - dis, 0)
+            
+    return total_loss
 
 if __name__ == "__main__":
     inputs = torch.tensor([[1,2,3.0], [1,2,4], [1,2,4], [2,3,4], [5,6,7]])
