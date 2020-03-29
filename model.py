@@ -85,8 +85,8 @@ class Vgg16Net(nn.Module):
     def __init__(self):
         super(Vgg16Net, self).__init__()
         self.CNN = models.vgg16(pretrained=True).features
-        self.FC1 = nn.Linear(7*7*512, 2048)
-        self.FC2 = nn.Linear(2048, 32)
+        self.FC1 = nn.Linear(7*7*512, 1024)
+        self.FC2 = nn.Linear(1024, 32)
     
     def forward(self, x):
         output = self.CNN(x)
@@ -103,8 +103,8 @@ class Vgg11Net(nn.Module):
     def __init__(self):
         super(Vgg11Net, self).__init__()
         self.CNN = models.vgg11(pretrained=True).features
-        self.FC1 = nn.Linear(7*7*512, 2048)
-        self.FC2 = nn.Linear(2048, 32)
+        self.FC1 = nn.Linear(7*7*512, 1024)
+        self.FC2 = nn.Linear(1024, 32)
     
     def forward(self, x):
         output = self.CNN(x)
@@ -115,7 +115,21 @@ class Vgg11Net(nn.Module):
 
         return output
 
-
+class AlexNet(nn.Module):
+    def __init__(self):
+        super(AlexNet, self).__init__()
+        self.features = models.alexnet(pretrained=True).features
+        self.FC1 = nn.Linear(9216, 512)
+        self.FC2 = nn.Linear(512, 32)
+        
+    def forward(self, x):
+        output = self.features(x)
+        output = output.view(output.size()[0], -1)
+        output = self.FC1(output)
+        output = nn.functional.relu(output)
+        output = self.FC2(output)
+        output = torch.div(output, output.pow(2).sum(1, keepdim=True).sqrt())
+        return output
 
 #class Vgg16_norm(nn.Module):
 
@@ -123,5 +137,4 @@ if __name__ == '__main__':
     #m = CCLNet()
     #m = SiameseNet()
     #m = HardTripletNet()
-    m = ResNet()
-    print(m)
+    m = AlexNet()

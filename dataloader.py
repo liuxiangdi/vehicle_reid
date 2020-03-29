@@ -1,4 +1,5 @@
 import os
+import time
 import random
 import torch
 import torch.nn as nn
@@ -108,6 +109,8 @@ class VeRi_dataloader():
     def get_test_ids(self):
         return range(300)
 
+
+
 class VeRI_validation_dataloader():
     def __init__(self):
         super().__init__()
@@ -162,16 +165,51 @@ class VeRI_validation_dataloader():
         return False, images, car_infos
     
 
+class VeRIdataset_contrastive_train(Dataset):
+    def __init__(self):
+        self.root_path = "/home/lxd/datasets/VeRi/image_train"
+        images = [[int(i[:4]), os.path.join(self.root_path, i)] 
+                   for i in os.listdir(self.root_path) if 'jpg' in i]
+        images.sort()
+        cars_id = []
+        ids = []
+        
+        for index, image in images:
+            if index not in ids:
+                ids.append(index)
+                cars_id.append([])
+            cars_id[-1].append(image)
+        cars_id = [i for i in cars_id if len(i) >= 4]
+        
+        self.cars_id = cars_id
+        self.id_num = len(self.cars_id)
+        print("------------ VeRI Train Dataset : {} class -------------".format(self.id_num))
+    
+    def __getitem__(self, index):
+        flag = 1
+        anchor_id, simense_id = None, None
+        if random.random() > 0.5:
+            anchor_id = random.choice(range(self.id_num))
+            simense_id = anchor_id
+            flag = 1
+        else:
+            anchor_id, simense_id = random.sample(range(self.id_num), 2)
+            flag = 0
+        anchor_lis = self.cars_id[anchor_id]
+        simense_lis = self.cars_id[simense_id]
+        anchor = train_transform(Image.open(random.choice(anchor_lis)))
+        simense = train_transform(Image.open(random.choice(simense_lis)))
+        flag = torch.tensor(flag)
+        return anchor, simense, flag
+    
+    def __len__(self):
+        return self.id_num
+
+
 if __name__ == '__main__':
-    """
-    dataloader = VeRi_dataloader()
-    anchor, pos, neg = dataloader.get_triplet_batch()
-    images = dataloader.get_batch_hard_triplets()
-    """
-    dataloader = VeRi_dataloader()
-    num = 0
-    while True:
-        anchor, simense, flags = dataloader.get_contrastive_batch()
-        num += 1
-        if num == 100:
-            break
+    dataset = VeRIdataset_contrastive_train()
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=False, num_workers=8)
+    t = time.time()
+    for anchor, simense, flag in dataloader:
+        print(flag)
+    print(time.time()-t)
