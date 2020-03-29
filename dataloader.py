@@ -82,11 +82,14 @@ class VeRI_validation_dataloader():
     def __init__(self):
         super().__init__()
         self.root_path = "/home/lxd/datasets/VeRi/"
-        self.query_images = os.path.join(self.root_path, "image_query")
-        self.test_images = os.path.join(self.root_path, "image_test")
+        query_path = os.path.join(self.root_path, "image_query")
+        self.query_images = [os.path.join(query_path, i) for i in os.listdir(query_path) if ".jpg" in i]
+
+        test_path = os.path.join(self.root_path, "image_test")
+        self.test_images = [os.path.join(test_path, i) for i in os.listdir(test_path) if ".jpg" in i]
 
         self.query_index = 0
-        self.test_images = 0
+        self.test_index = 0
 
     def get_query_batch(self):
         # 固定batch_size为16
@@ -99,32 +102,57 @@ class VeRI_validation_dataloader():
         car_infos = []
         for image_path in self.query_images[self.query_index:self.query_index+16]:
             images.append(train_transform(Image.open(image_path)))
-            _temp = image_path.split('/')[-1][:-4]
-            car_info = _temp.split()
+            car_info = image_path.split('/')[-1][:-4]
+            #car_info = _temp.split()
             car_infos.append(car_info)
         images = torch.stack(images)
+        
+        self.query_index += 16
+
         return False, images, car_infos
  
     def get_test_batch(self):
         # 固定batch_size为16
-        length = len(self.query_images)
-        if self.query_index >= length:
+        length = len(self.test_images)
+        if self.test_index >= length:
             # end_flag, inputs, image_names
             return True, None, None
 
         images = []
         car_infos = []
-        for image_path in self.query_images[self.query_index:self.query_index+16]:
+        for image_path in self.test_images[self.test_index:self.test_index+16]:
             images.append(train_transform(Image.open(image_path)))
-            _temp = image_path.split('/')[-1][:-4]
-            car_info = _temp.split()
+            car_info = image_path.split('/')[-1][:-4]
+            #car_info = _temp.split()
             car_infos.append(car_info)
         images = torch.stack(images)
+        
+        self.test_index += 16
+        
         return False, images, car_infos
     
 
 if __name__ == '__main__':
+    """
     dataloader = VeRi_dataloader()
     anchor, pos, neg = dataloader.get_triplet_batch()
     images = dataloader.get_batch_hard_triplets()
-    
+    """
+    dataloader = VeRI_validation_dataloader()
+    end_flag = False
+    num = 0
+    while True:
+        end_flag, images, car_infos = dataloader.get_query_batch()
+        if end_flag:
+            break
+        num += len(images)
+    print("query_images {}".format(num))
+    end_flag = False
+    num = 0
+    while True:
+        end_flag, images, car_infos = dataloader.get_test_batch()
+        if end_flag:
+            break
+        num += len(images)
+    print("test_images {}".format(num))
+
